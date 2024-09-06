@@ -15,3 +15,154 @@
 .Detail-Page {
   font-size: 16px;
 }
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  background-color: #f3f3f3;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 375px;
+  min-height: 100vh;
+  background-color: var(--Very-Dark-Blue-Dark-Mode-Background);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  color: var(--White-Dark-Mode-Text-and-Light-Mode-Elements);
+  padding: 2.5em 1.5em;
+}
+
+.box-mode {
+  width: 6.6em;
+  display: flex;
+  justify-content: space-between;
+}
+
+.box-mode span,
+.box-title-menu span {
+  display: none;
+}
+.box-mode span.active,
+.box-title-menu span.active {
+  display: unset;
+}
+
+.mode-icon {
+  margin-inline-end: 1em;
+}
+
+.main-section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 40px;
+  padding: 2em 1.2em;
+}
+
+.box-input {
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  color: var(--Very-Light-Gray-Light-Mode-Background);
+  padding: 1em 2em;
+  border-radius: 0.4em;
+}
+
+.search-input {
+  width: 85%;
+  background-color: transparent;
+  color: var(--Very-Light-Gray-Light-Mode-Background);
+  margin-inline-start: 2em;
+  border: none;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--Very-Light-Gray-Light-Mode-Background);
+  opacity: 0.7;
+  /* opacity: 1; Firefox */
+}
+
+.search-input::-ms-input-placeholder {
+  /* Edge 12 -18 */
+  color: var(--Very-Light-Gray-Light-Mode-Background);
+}
+
+.menu {
+  color: var(--White-Dark-Mode-Text-and-Light-Mode-Elements);
+  opacity: 0.7;
+  width: 60%;
+}
+
+.box-title-menu {
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  padding: 1em 2em;
+  border-radius: 0.4em;
+  margin-bottom: 0.4em;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.list-region {
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  padding: 0.4em 2em;
+  border-radius: 0.4em;
+}
+
+.list-region.hidden {
+  display: none;
+}
+
+.list-region li {
+  margin: 0.8em 0;
+}
+
+.country-card {
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  color: var(--White-Dark-Mode-Text-and-Light-Mode-Elements);
+  align-self: center;
+  width: 19em;
+  border-radius: 0.4em;
+  overflow: hidden;
+}
+
+.box-img img {
+  width: 100%;
+}
+
+.card-body {
+  padding: 2em;
+}
+
+.card-body h3 {
+  font-size: 1.3em;
+  font-weight: 300;
+  margin: 0 0 1em;
+}
+
+.card-body p {
+  margin: 0.8em 0;
+  font-size: 1.1em;
+}
+
+.card-body p span {
+  opacity: 0.7;
+}
