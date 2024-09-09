@@ -9,10 +9,7 @@
   --White-Dark-Mode-Text-and-Light-Mode-Elements: hsl(0, 0%, 100%);
 }
 
-* .Homepage {
-  font-size: 14px;
-}
-.Detail-Page {
+* .Detail-Page {
   font-size: 16px;
 }
 
@@ -56,6 +53,7 @@ body {
   width: 6.6em;
   display: flex;
   justify-content: space-between;
+  cursor: pointer;
 }
 
 .box-mode span,
@@ -71,7 +69,8 @@ body {
   margin-inline-end: 1em;
 }
 
-.main-section {
+.Homepage {
+  font-size: 14px;
   display: flex;
   flex-direction: column;
   row-gap: 40px;
@@ -107,8 +106,8 @@ body {
 
 .menu {
   color: var(--White-Dark-Mode-Text-and-Light-Mode-Elements);
-  opacity: 0.7;
   width: 60%;
+  position: relative;
 }
 
 .box-title-menu {
@@ -119,12 +118,17 @@ body {
   display: flex;
   justify-content: space-between;
   cursor: pointer;
+  box-shadow: 0.2em 0.2em 1em 0.1em rgba(0, 0, 0, 0.2);
 }
 
 .list-region {
   background-color: var(--Dark-Blue-Dark-Mode-Elements);
-  padding: 0.4em 2em;
+  padding: 0.6em 2em;
   border-radius: 0.4em;
+  position: absolute;
+  width: 100%;
+  z-index: 99;
+  box-shadow: 0.2em 0.2em 1em 0.1em rgba(0, 0, 0, 0.2);
 }
 
 .list-region.hidden {
@@ -132,7 +136,19 @@ body {
 }
 
 .list-region li {
-  margin: 0.8em 0;
+  margin: 0.4em 0;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0.4em;
+  border-radius: 0.4em;
+}
+
+.list-region li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.list-region li.selected {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .country-card {
