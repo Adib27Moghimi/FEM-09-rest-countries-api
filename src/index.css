@@ -9,10 +9,6 @@
   --White-Dark-Mode-Text-and-Light-Mode-Elements: hsl(0, 0%, 100%);
 }
 
-* .Detail-Page {
-  font-size: 16px;
-}
-
 * {
   padding: 0;
   margin: 0;
@@ -158,6 +154,7 @@ body {
   width: 19em;
   border-radius: 0.4em;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .box-img img {
@@ -181,4 +178,54 @@ body {
 
 .card-body p span {
   opacity: 0.7;
+}
+
+.Detail-Page {
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 40px;
+  padding: 2em 1.2em;
+}
+
+.BackButton,
+.box-border-countries button {
+  width: 6.4em;
+  margin-inline-start: 1em;
+  padding: 0.4em;
+  display: flex;
+  justify-content: space-evenly;
+  cursor: pointer;
+  border-radius: 0.4em;
+  background-color: var(--Dark-Blue-Dark-Mode-Elements);
+  color: var(--Dark-Gray-Light-Mode-Input);
+}
+.BackButton span {
+  color: var(--Very-Light-Gray-Light-Mode-Background);
+}
+
+.country-detail-card {
+  cursor: unset;
+}
+
+.basic-information {
+  margin: 1em 0 2em;
+}
+
+.more-information {
+  margin-bottom: 2em;
+}
+
+.title-border-countries {
+  margin-bottom: 1em;
+}
+
+.box-border-countries {
+  display: flex;
+  justify-content: space-between;
+}
+
+.box-border-countries button {
+  margin-inline-start: unset;
+  width: 5.4em;
 }
