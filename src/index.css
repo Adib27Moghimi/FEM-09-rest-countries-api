@@ -173,11 +173,12 @@ body {
 
 .card-body p {
   margin: 0.8em 0;
-  font-size: 1.1em;
+  font-size: 1em;
 }
 
-.card-body p span {
+.card-body span {
   opacity: 0.7;
+  font-size: 0.9em;
 }
 
 .Detail-Page {
@@ -222,7 +223,8 @@ body {
 
 .box-border-countries {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.6em;
 }
 
 .box-border-countries button {
