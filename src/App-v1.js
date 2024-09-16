@@ -1,11 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 //// ! ///////////////////////////////
 const res = await fetch(`https://restcountries.com/v3.1/all`);
 const dataArr = await res.json();
 
+// const res2 = await fetch(`https://restcountries.com/v3.1/name/Japan`);
+// const [dataArr2] = await res2.json();
+// console.log(dataArr2);
+
+// const res3 = await fetch(
+//   `https://restcountries.com/v3.1/alpha/${dataArr2.cioc}`
+// );
+// const [dataArr3] = await res3.json();
+// console.log(dataArr3);
+
 const countriesData = dataArr
-  .filter((_, i) => i < 15)
+  .filter((_, i) => i > 25 && i < 35)
   .map((el) => {
     const [nativeNameObj] = Object.values(el.name.nativeName);
     const [Capital] = el.capital;
@@ -21,6 +31,7 @@ const countriesData = dataArr
       TopLevelDomain: el.tld,
       Currencies: CurrenciesObj.name,
       LanguagesObj: el.languages,
+      BordersArr: el.borders || "",
     };
   });
 
@@ -95,13 +106,13 @@ export default function App() {
   );
   const [isCloseDetail, setIsCloseDetail] = useState(true);
   const [eventCurrentTargetId, setEventCurrentTargetId] = useState("");
-
   const countryFilterData = DataOfCountriesSortedByTheirName.filter(
     (countryData) =>
       (search
         ? countryData.Name.toLowerCase().includes(search.toLowerCase())
         : true) && regionsSelected.includes(countryData.Region)
   );
+  const [countryDataObj, setCountryDataObj] = useState(null);
 
   function handleSelect(e, region) {
     if (!e.target.classList.contains(region)) return;
@@ -132,6 +143,38 @@ export default function App() {
     }
   }
 
+  function handleSelectBorder(border) {
+    async function GetBorderCountry() {
+      const res = await fetch(`https://restcountries.com/v3.1/alpha/${border}`);
+      const [data] = await res.json();
+
+      const [nativeNameObj] = Object.values(data.name.nativeName);
+      const [capital] = data.capital;
+      const [currenciesObj] = Object.values(data.currencies);
+
+      const newData = {
+        NativeName: nativeNameObj.common,
+        Capital: capital,
+        Currencies: currenciesObj.name,
+        Flag: data.flags.svg,
+        Name: data.name.common,
+        Population: data.population,
+        Region: data.region,
+        Subregion: data.subregion,
+        TopLevelDomain: data.tld,
+        LanguagesObj: data.languages,
+        BordersArr: data.borders || "",
+      };
+
+      setCountryDataObj(newData);
+    }
+    GetBorderCountry();
+  }
+
+  useEffect(() => {
+    setCountryDataObj(countryDataObj);
+  }, [countryDataObj]);
+
   return (
     <div className="app">
       <Header>
@@ -152,20 +195,29 @@ export default function App() {
       ) : (
         <DetailPage>
           <BackButton onCloseDetailPage={handleCloseDetailPage} />
-          <CountryDetailCard eventCurrentTargetId={eventCurrentTargetId} />
+          <CountryDetailCard
+            eventCurrentTargetId={eventCurrentTargetId}
+            onSelectBorder={handleSelectBorder}
+            countryDataObj={countryDataObj}
+          />
         </DetailPage>
       )}
     </div>
   );
 }
 
-function CountryDetailCard({ eventCurrentTargetId }) {
+function CountryDetailCard({
+  eventCurrentTargetId,
+  onSelectBorder,
+  countryDataObj,
+}) {
   const [countryDetailFilterData = {}] =
     DataOfCountriesSortedByTheirName.filter(
-      (countryData) =>
-        countryData.Name.toLowerCase() === eventCurrentTargetId.toLowerCase()
+      (countryDetailsData) =>
+        countryDetailsData.Name.toLowerCase() ===
+        eventCurrentTargetId.toLowerCase()
     );
-  const countryData = countryDetailFilterData;
+  const countryData = countryDataObj || countryDetailFilterData;
 
   return (
     <div className="country-card country-detail-card" key={countryData.Name}>
@@ -199,20 +251,30 @@ function CountryDetailCard({ eventCurrentTargetId }) {
           <p>
             Currencies:<span> {countryData.Currencies}</span>
           </p>
-          <p>{/* Languages:<span>{countryData.LanguagesObj}</span> */}</p>
+          <p>
+            Languages:
+            {Object.values(countryData.LanguagesObj).map(
+              (language, index, arr) => (
+                <span key={language}>
+                  {" " + language}
+                  {index < arr.length - 1 ? "," : "."}
+                </span>
+              )
+            )}
+          </p>
         </div>
         <div className="border-countries">
-          <h4 className="title-border-countries">Border Countries</h4>
+          <h4 className="title-border-countries">Border Countries:</h4>
           <ul className="box-border-countries">
-            <li>
-              <button>D1</button>
-            </li>
-            <li>
-              <button>D2</button>
-            </li>
-            <li>
-              <button>D3</button>
-            </li>
+            {countryData.BordersArr ? (
+              countryData.BordersArr.map((border) => (
+                <li key={border} onClick={() => onSelectBorder(border)}>
+                  <button>{border}</button>
+                </li>
+              ))
+            ) : (
+              <span>There are no borders.</span>
+            )}
           </ul>
         </div>
       </section>
