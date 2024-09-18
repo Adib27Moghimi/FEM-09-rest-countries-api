@@ -1,95 +1,25 @@
 import { useEffect, useState } from "react";
 
-//// ! ///////////////////////////////
 const res = await fetch(`https://restcountries.com/v3.1/all`);
-const dataArr = await res.json();
+const allCountries = await res.json();
 
-// const res2 = await fetch(`https://restcountries.com/v3.1/name/Japan`);
-// const [dataArr2] = await res2.json();
-// console.log(dataArr2);
-
-// const res3 = await fetch(
-//   `https://restcountries.com/v3.1/alpha/${dataArr2.cioc}`
-// );
-// const [dataArr3] = await res3.json();
-// console.log(dataArr3);
-
-const countriesData = dataArr
-  .filter((_, i) => i > 25 && i < 35)
-  .map((el) => {
-    const [nativeNameObj] = Object.values(el.name.nativeName);
-    const [Capital] = el.capital;
-    const [CurrenciesObj] = Object.values(el.currencies);
-    return {
-      Flag: el.flags.svg,
-      Name: el.name.common,
-      NativeName: nativeNameObj.common,
-      Population: el.population,
-      Region: el.region,
-      Subregion: el.subregion,
-      Capital,
-      TopLevelDomain: el.tld,
-      Currencies: CurrenciesObj.name,
-      LanguagesObj: el.languages,
-      BordersArr: el.borders || "",
-    };
-  });
-
-//// ! /////////////////////////////////
-// const countriesData = [
-//   {
-//     Flag: "./Flag-of-Germany.png",
-//     Name: "Germany",
-//     Population: 81770900,
-//     Region: "Europe",
-//     Capital: "Berlin",
-//   },
-//   {
-//     Flag: "./Flag-of-the-United-States.png",
-//     Name: "United States of America",
-//     Population: 323947000,
-//     Region: "America",
-//     Capital: "Washington, D.C.",
-//   },
-//   {
-//     Flag: "./Flag-of-Japan.png",
-//     Name: "Japan",
-//     Population: 125416877,
-//     Region: "Asia",
-//     Capital: "Tokyo",
-//   },
-//   {
-//     Flag: "./Flag-of-New-Zealand.png",
-//     Name: "New Zealand",
-//     Population: 5434800,
-//     Region: "Oceania",
-//     Capital: "Wellington",
-//   },
-//   {
-//     Flag: "./Flag-of-Nigeria.png",
-//     Name: "Nigeria",
-//     Population: 216746934,
-//     Region: "Africa",
-//     Capital: "Abuja",
-//   },
-// ];
-//// ! ////////////////////////////////
-
-const DataOfCountriesSortedByTheirName = [...countriesData].sort((a, b) => {
+const allCountriesSorted = [...allCountries].sort((a, b) => {
   // ignore upper and lowercase
-  const NameA = a.Name.toLowerCase();
-  const NameB = b.Name.toLowerCase();
+  const NameA = a.Name?.common.toLowerCase();
+  const NameB = b.Name?.common.toLowerCase();
 
   if (NameA < NameB) return -1;
   if (NameA > NameB) return 1;
   return 0;
 });
 
-const DataOfRegions = countriesData.map((country) => country.Region);
+const restrictingCountriesData = allCountriesSorted.map((el) => getNewData(el));
 
-const UniqueDataOfRegions = [...new Set(DataOfRegions)];
+const regionsData = restrictingCountriesData.map((country) => country.Region);
 
-const SortedUniqueDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
+const UniqueDataOfRegions = [...new Set(regionsData)];
+
+const SortedDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
   // ignore upper and lowercase
   const RegionA = a.toLowerCase();
   const RegionB = b.toLowerCase();
@@ -99,22 +29,60 @@ const SortedUniqueDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
   return 0;
 });
 
+function getNewData(data) {
+  const native = data.name?.nativeName || "does not exist";
+  const nativeNameObj =
+    typeof native === "string"
+      ? native
+      : typeof native === "object" && Object.values(native)[0];
+
+  const currencies = data?.currencies || "does not exist";
+  const currenciesObj =
+    typeof currencies === "string"
+      ? currencies
+      : typeof currencies === "object" && Object.values(currencies)[0];
+  const newData = {
+    Flag: data.flags.svg,
+    Name: data.name.common,
+    NativeName: nativeNameObj?.common || "does not exist",
+    Population: data.population,
+    Region: data.region,
+    Subregion: data.subregion || "does not exist",
+    Capital: data.capital?.[0] || "does not exist",
+    TopLevelDomain: data.tld?.[0] || "does not exist",
+    Currencies: currenciesObj?.name || "does not exist",
+    LanguagesObj: data.languages || "does not exist",
+    BordersArr: data.borders || "does not exist",
+  };
+  return newData;
+}
+
 export default function App() {
-  const [search, setSearch] = useState("");
-  const [regionsSelected, setRegionsSelected] = useState(
-    SortedUniqueDataOfRegions
+  const [fromNum, setFromNum] = useState(1);
+  const toNum = fromNum + 7;
+
+  const FilteredCountries = [...restrictingCountriesData].filter(
+    (_, i) => i >= fromNum - 1 && i <= toNum - 1
   );
+
+  const [query, setQuery] = useState("");
+  const [regionsSelected, setRegionsSelected] = useState(SortedDataOfRegions);
   const [isCloseDetail, setIsCloseDetail] = useState(true);
   const [eventCurrentTargetId, setEventCurrentTargetId] = useState("");
-  const countryFilterData = DataOfCountriesSortedByTheirName.filter(
-    (countryData) =>
-      (search
-        ? countryData.Name.toLowerCase().includes(search.toLowerCase())
-        : true) && regionsSelected.includes(countryData.Region)
-  );
+
+  const countryFilterData = query
+    ? restrictingCountriesData.filter(
+        (countryData) =>
+          countryData.Name.toLowerCase().includes(query.toLowerCase().trim()) &&
+          regionsSelected.includes(countryData.Region)
+      )
+    : FilteredCountries.filter((countryData) =>
+        regionsSelected.includes(countryData.Region)
+      );
+
   const [countryDataObj, setCountryDataObj] = useState(null);
 
-  function handleSelect(e, region) {
+  function handleSelectRegion(e, region) {
     if (!e.target.classList.contains(region)) return;
 
     if (e.target.classList.contains("selected")) {
@@ -140,40 +108,42 @@ export default function App() {
     if (e.currentTarget.id === countryData.Name) {
       setIsCloseDetail(false);
       setEventCurrentTargetId(e.currentTarget.id);
+      setCountryDataObj(null);
     }
   }
+
+  useEffect(() => {
+    setIsCloseDetail(isCloseDetail);
+  }, [isCloseDetail]);
+
+  useEffect(() => {
+    setEventCurrentTargetId(eventCurrentTargetId);
+  }, [eventCurrentTargetId]);
 
   function handleSelectBorder(border) {
     async function GetBorderCountry() {
       const res = await fetch(`https://restcountries.com/v3.1/alpha/${border}`);
       const [data] = await res.json();
 
-      const [nativeNameObj] = Object.values(data.name.nativeName);
-      const [capital] = data.capital;
-      const [currenciesObj] = Object.values(data.currencies);
-
-      const newData = {
-        NativeName: nativeNameObj.common,
-        Capital: capital,
-        Currencies: currenciesObj.name,
-        Flag: data.flags.svg,
-        Name: data.name.common,
-        Population: data.population,
-        Region: data.region,
-        Subregion: data.subregion,
-        TopLevelDomain: data.tld,
-        LanguagesObj: data.languages,
-        BordersArr: data.borders || "",
-      };
+      const newData = getNewData(data);
 
       setCountryDataObj(newData);
     }
     GetBorderCountry();
   }
-
   useEffect(() => {
     setCountryDataObj(countryDataObj);
   }, [countryDataObj]);
+
+  function handlePreListCountries() {
+    if (fromNum === 1) return;
+    setFromNum((fromNum) => fromNum - 8);
+  }
+
+  function handleNextListCountries(arr) {
+    if (toNum >= arr.length) return;
+    setFromNum((fromNum) => fromNum + 8);
+  }
 
   return (
     <div className="app">
@@ -182,8 +152,15 @@ export default function App() {
       </Header>
       {isCloseDetail ? (
         <Homepage>
-          <SearchInput search={search} setSearch={setSearch} />
-          <FilterMenu onSelect={handleSelect} />
+          <Search query={query} setQuery={setQuery} />
+          <CountryListChanger
+            fromNum={fromNum}
+            toNum={toNum}
+            onPreListCountries={handlePreListCountries}
+            onNextListCountries={handleNextListCountries}
+            arr={restrictingCountriesData}
+          />
+          <FilterMenu onSelectRegion={handleSelectRegion} />
           {countryFilterData.map((countryData) => (
             <CountryCard
               countryData={countryData}
@@ -206,17 +183,33 @@ export default function App() {
   );
 }
 
+function CountryListChanger({
+  fromNum,
+  toNum,
+  onPreListCountries,
+  onNextListCountries,
+  arr,
+}) {
+  return (
+    <div className="Country-List-Changer">
+      <button onClick={onPreListCountries}>Pre</button>
+      <span>From {fromNum}</span>
+      <span>to {toNum}</span>
+      <button onClick={() => onNextListCountries(arr)}>Next</button>
+    </div>
+  );
+}
+
 function CountryDetailCard({
   eventCurrentTargetId,
   onSelectBorder,
   countryDataObj,
 }) {
-  const [countryDetailFilterData = {}] =
-    DataOfCountriesSortedByTheirName.filter(
-      (countryDetailsData) =>
-        countryDetailsData.Name.toLowerCase() ===
-        eventCurrentTargetId.toLowerCase()
-    );
+  const [countryDetailFilterData] = restrictingCountriesData.filter(
+    (countryDetailsData) =>
+      countryDetailsData.Name.toLowerCase() ===
+      eventCurrentTargetId.toLowerCase()
+  );
   const countryData = countryDataObj || countryDetailFilterData;
 
   return (
@@ -246,27 +239,33 @@ function CountryDetailCard({
         </div>
         <div className="more-information">
           <p>
-            Top Level Domain:<span> {countryData.TopLevelDomain}</span>
+            Top Level Domain:<span> {countryData.TopLevelDomain} </span>
           </p>
           <p>
             Currencies:<span> {countryData.Currencies}</span>
           </p>
           <p>
             Languages:
-            {Object.values(countryData.LanguagesObj).map(
-              (language, index, arr) => (
-                <span key={language}>
-                  {" " + language}
-                  {index < arr.length - 1 ? "," : "."}
-                </span>
+            {countryData.LanguagesObj &&
+            typeof countryData.LanguagesObj === "object" ? (
+              Object.values(countryData.LanguagesObj).map(
+                (language, index, arr) => (
+                  <span key={language}>
+                    {" " + language}
+                    {index < arr.length - 1 ? "," : "."}
+                  </span>
+                )
               )
+            ) : (
+              <span> There is no language</span>
             )}
           </p>
         </div>
         <div className="border-countries">
           <h4 className="title-border-countries">Border Countries:</h4>
           <ul className="box-border-countries">
-            {countryData.BordersArr ? (
+            {countryData.BordersArr &&
+            typeof countryData.BordersArr === "object" ? (
               countryData.BordersArr.map((border) => (
                 <li key={border} onClick={() => onSelectBorder(border)}>
                   <button>{border}</button>
@@ -319,7 +318,7 @@ function Homepage({ children }) {
   return <main className="Homepage">{children}</main>;
 }
 
-function SearchInput({ search, setSearch }) {
+function Search({ query, setQuery }) {
   return (
     <div className="box-input">
       <span className="fas fa-search"></span>
@@ -328,14 +327,14 @@ function SearchInput({ search, setSearch }) {
         type="text"
         className="search-input"
         placeholder="Search for a country..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
       />
     </div>
   );
 }
 
-function FilterMenu({ onSelect }) {
+function FilterMenu({ onSelectRegion }) {
   const [isClose, setIsClose] = useState(true);
 
   function handleToggleMenu() {
@@ -352,11 +351,11 @@ function FilterMenu({ onSelect }) {
       <ul
         className={`list-region ${isClose ? "hidden" : ""}`}
         onClick={(e) =>
-          SortedUniqueDataOfRegions.map((region) => onSelect(e, region))
+          SortedDataOfRegions.map((region) => onSelectRegion(e, region))
         }
       >
         {/* //// ! این مورد کی رو بعدا درست کنم */}
-        {SortedUniqueDataOfRegions.map((region, index) => (
+        {SortedDataOfRegions.map((region, index) => (
           <li key={index} className={`${region} selected`}>
             {region}
           </li>
