@@ -65,6 +65,12 @@ export default function App() {
     (_, i) => i >= fromNum - 1 && i <= toNum - 1
   );
 
+  const displayFromNum = fromNum < 1 ? 1 : fromNum;
+  const displayToNum =
+    toNum > restrictingCountriesData.length
+      ? restrictingCountriesData.length
+      : toNum;
+
   const [query, setQuery] = useState("");
   const [regionsSelected, setRegionsSelected] = useState(SortedDataOfRegions);
   const [isCloseDetail, setIsCloseDetail] = useState(true);
@@ -154,8 +160,8 @@ export default function App() {
         <Homepage>
           <Search query={query} setQuery={setQuery} />
           <CountryListChanger
-            fromNum={fromNum}
-            toNum={toNum}
+            displayFromNum={displayFromNum}
+            displayToNum={displayToNum}
             onPreListCountries={handlePreListCountries}
             onNextListCountries={handleNextListCountries}
             arr={restrictingCountriesData}
@@ -184,8 +190,8 @@ export default function App() {
 }
 
 function CountryListChanger({
-  fromNum,
-  toNum,
+  displayFromNum,
+  displayToNum,
   onPreListCountries,
   onNextListCountries,
   arr,
@@ -193,8 +199,8 @@ function CountryListChanger({
   return (
     <div className="Country-List-Changer">
       <button onClick={onPreListCountries}>Pre</button>
-      <span>From {fromNum}</span>
-      <span>to {toNum}</span>
+      <span>From {displayFromNum}</span>
+      <span>to {displayToNum}</span>
       <button onClick={() => onNextListCountries(arr)}>Next</button>
     </div>
   );
