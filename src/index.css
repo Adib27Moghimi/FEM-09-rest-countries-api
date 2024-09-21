@@ -29,11 +29,13 @@ body {
   background-color: #f3f3f3;
   display: flex;
   justify-content: center;
+  min-height: 100vh;
 }
 
 .app {
   width: 375px;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 45.375em;
   background-color: var(--Very-Dark-Blue-Dark-Mode-Background);
 }
 
@@ -256,4 +258,9 @@ body {
 .box-border-countries button {
   margin-inline-start: unset;
   width: 5.4em;
+}
+
+.country-num {
+  position: relative;
+  top: -1em;
 }

@@ -1,35 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const res = await fetch(`https://restcountries.com/v3.1/all`);
 const allCountries = await res.json();
 
 const allCountriesSorted = [...allCountries].sort((a, b) => {
   // ignore upper and lowercase
-  const NameA = a.Name?.common.toLowerCase();
-  const NameB = b.Name?.common.toLowerCase();
+  const NameA = a.name.common.toLowerCase();
+  const NameB = b.name.common.toLowerCase();
 
   if (NameA < NameB) return -1;
   if (NameA > NameB) return 1;
   return 0;
 });
 
-const restrictingCountriesData = allCountriesSorted.map((el) => getNewData(el));
-
-const regionsData = restrictingCountriesData.map((country) => country.Region);
-
-const UniqueDataOfRegions = [...new Set(regionsData)];
-
-const SortedDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
-  // ignore upper and lowercase
-  const RegionA = a.toLowerCase();
-  const RegionB = b.toLowerCase();
-
-  if (RegionA < RegionB) return -1;
-  if (RegionA > RegionB) return 1;
-  return 0;
-});
-
-function getNewData(data) {
+function getNewData(data, i) {
   const native = data.name?.nativeName || "does not exist";
   const nativeNameObj =
     typeof native === "string"
@@ -42,6 +26,8 @@ function getNewData(data) {
       ? currencies
       : typeof currencies === "object" && Object.values(currencies)[0];
   const newData = {
+    Cca3: data.cca3,
+    Num: i + 1,
     Flag: data.flags.svg,
     Name: data.name.common,
     NativeName: nativeNameObj?.common || "does not exist",
@@ -57,24 +43,44 @@ function getNewData(data) {
   return newData;
 }
 
+const restrictingCountriesData = allCountriesSorted.map((el, i) =>
+  getNewData(el, i)
+);
+
+const regionsData = restrictingCountriesData.map((country) => country.Region);
+
+const UniqueDataOfRegions = [...new Set(regionsData)];
+
+const SortedDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
+  // ignore upper and lowercase
+  const RegionA = a.toLowerCase();
+  const RegionB = b.toLowerCase();
+
+  if (RegionA < RegionB) return -1;
+  if (RegionA > RegionB) return 1;
+  return 0;
+});
+
 export default function App() {
+  const [query, setQuery] = useState("");
+
   const [fromNum, setFromNum] = useState(1);
   const toNum = fromNum + 7;
-
-  const FilteredCountries = [...restrictingCountriesData].filter(
-    (_, i) => i >= fromNum - 1 && i <= toNum - 1
-  );
-
   const displayFromNum = fromNum < 1 ? 1 : fromNum;
   const displayToNum =
     toNum > restrictingCountriesData.length
       ? restrictingCountriesData.length
       : toNum;
 
-  const [query, setQuery] = useState("");
+  const [isCloseMenu, setIsCloseMenu] = useState(true);
   const [regionsSelected, setRegionsSelected] = useState(SortedDataOfRegions);
+
   const [isCloseDetail, setIsCloseDetail] = useState(true);
   const [eventCurrentTargetId, setEventCurrentTargetId] = useState("");
+
+  const FilterCountries = [...restrictingCountriesData].filter(
+    (_, i) => i >= fromNum - 1 && i <= toNum - 1
+  );
 
   const countryFilterData = query
     ? restrictingCountriesData.filter(
@@ -82,7 +88,7 @@ export default function App() {
           countryData.Name.toLowerCase().includes(query.toLowerCase().trim()) &&
           regionsSelected.includes(countryData.Region)
       )
-    : FilteredCountries.filter((countryData) =>
+    : FilterCountries.filter((countryData) =>
         regionsSelected.includes(countryData.Region)
       );
 
@@ -91,68 +97,52 @@ export default function App() {
   function handleSelectRegion(e, region) {
     if (!e.target.classList.contains(region)) return;
 
-    if (e.target.classList.contains("selected")) {
-      setRegionsSelected((regionsSelected) =>
-        regionsSelected.filter((reg) => reg !== region)
-      );
-    }
-
-    if (!e.target.classList.contains("selected")) {
-      setRegionsSelected((regionsSelected) =>
-        [...regionsSelected, region].sort()
-      );
-    }
-
-    e.target.classList.toggle("selected");
+    e.target.classList.contains("selected")
+      ? setRegionsSelected((regionsSelected) =>
+          regionsSelected.filter((reg) => reg !== region)
+        )
+      : setRegionsSelected((regionsSelected) =>
+          [...regionsSelected, region].sort()
+        );
   }
 
   function handleCloseDetailPage() {
     setIsCloseDetail(true);
+    setQuery("");
   }
 
-  function handleOpenDetailPage(e, countryData) {
-    if (e.currentTarget.id === countryData.Name) {
-      setIsCloseDetail(false);
-      setEventCurrentTargetId(e.currentTarget.id);
-      setCountryDataObj(null);
-    }
+  function handleOpenDetailPage(e) {
+    setIsCloseDetail(false);
+    setEventCurrentTargetId(e.currentTarget.id);
+    setCountryDataObj(null);
   }
-
-  useEffect(() => {
-    setIsCloseDetail(isCloseDetail);
-  }, [isCloseDetail]);
-
-  useEffect(() => {
-    setEventCurrentTargetId(eventCurrentTargetId);
-  }, [eventCurrentTargetId]);
 
   function handleSelectBorder(border) {
-    async function GetBorderCountry() {
-      const res = await fetch(`https://restcountries.com/v3.1/alpha/${border}`);
-      const [data] = await res.json();
-
-      const newData = getNewData(data);
-
-      setCountryDataObj(newData);
-    }
-    GetBorderCountry();
+    const [newData] = restrictingCountriesData.filter(
+      (el) => el.Cca3 === border
+    );
+    setCountryDataObj(newData);
   }
-  useEffect(() => {
-    setCountryDataObj(countryDataObj);
-  }, [countryDataObj]);
 
   function handlePreListCountries() {
-    if (fromNum === 1) return;
-    setFromNum((fromNum) => fromNum - 8);
+    fromNum !== 1 && setFromNum((fromNum) => fromNum - 8);
   }
 
   function handleNextListCountries(arr) {
-    if (toNum >= arr.length) return;
-    setFromNum((fromNum) => fromNum + 8);
+    toNum < arr.length && setFromNum((fromNum) => fromNum + 8);
+  }
+
+  function handleToggleMenu(e) {
+    e.target.classList.contains("Menu-toggle-control") &&
+      setIsCloseMenu((isCloseMenu) => !isCloseMenu);
+
+    !e.target.classList.contains("Menu-close-control") &&
+      !isCloseMenu &&
+      setIsCloseMenu(true);
   }
 
   return (
-    <div className="app">
+    <div className="app" onClick={handleToggleMenu}>
       <Header>
         <ThemeMode />
       </Header>
@@ -164,9 +154,13 @@ export default function App() {
             displayToNum={displayToNum}
             onPreListCountries={handlePreListCountries}
             onNextListCountries={handleNextListCountries}
-            arr={restrictingCountriesData}
+            restrictingCountriesData={restrictingCountriesData}
           />
-          <FilterMenu onSelectRegion={handleSelectRegion} />
+          <FilterMenu
+            onSelectRegion={handleSelectRegion}
+            isCloseMenu={isCloseMenu}
+            regionsSelected={regionsSelected}
+          />
           {countryFilterData.map((countryData) => (
             <CountryCard
               countryData={countryData}
@@ -194,14 +188,16 @@ function CountryListChanger({
   displayToNum,
   onPreListCountries,
   onNextListCountries,
-  arr,
+  restrictingCountriesData,
 }) {
   return (
     <div className="Country-List-Changer">
       <button onClick={onPreListCountries}>Pre</button>
       <span>From {displayFromNum}</span>
       <span>to {displayToNum}</span>
-      <button onClick={() => onNextListCountries(arr)}>Next</button>
+      <button onClick={() => onNextListCountries(restrictingCountriesData)}>
+        Next
+      </button>
     </div>
   );
 }
@@ -224,6 +220,7 @@ function CountryDetailCard({
         <img src={countryData.Flag} alt={`${countryData.Name} country Flag`} />
       </div>
       <section className="card-body">
+        <span className="country-num">{countryData.Num}</span>
         <h3>{countryData.Name}</h3>
         <div className="basic-information">
           <p>
@@ -290,7 +287,7 @@ function CountryDetailCard({
 function BackButton({ onCloseDetailPage }) {
   return (
     <button className="BackButton" onClick={onCloseDetailPage}>
-      <span>X</span>Back
+      <span className="fas fa-angle-left"></span>Back
     </button>
   );
 }
@@ -340,29 +337,37 @@ function Search({ query, setQuery }) {
   );
 }
 
-function FilterMenu({ onSelectRegion }) {
-  const [isClose, setIsClose] = useState(true);
-
-  function handleToggleMenu() {
-    setIsClose((isClose) => !isClose);
-  }
-
+function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
   return (
     <nav className="menu">
-      <p className="box-title-menu" onClick={handleToggleMenu}>
+      <p className="box-title-menu Menu-toggle-control">
         Filter by Region
-        <span className={`fas fa-angle-down ${isClose ? "active" : ""}`}></span>
-        <span className={`fas fa-angle-up ${!isClose ? "active" : ""}`}></span>
+        <span
+          className={`fas fa-angle-down Menu-toggle-control ${
+            isCloseMenu ? "active" : ""
+          }`}
+        ></span>
+        <span
+          className={`fas fa-angle-up Menu-toggle-control ${
+            !isCloseMenu ? "active" : ""
+          }`}
+        ></span>
       </p>
       <ul
-        className={`list-region ${isClose ? "hidden" : ""}`}
+        className={`list-region Menu-close-control ${
+          isCloseMenu ? "hidden" : ""
+        }`}
         onClick={(e) =>
           SortedDataOfRegions.map((region) => onSelectRegion(e, region))
         }
       >
-        {/* //// ! این مورد کی رو بعدا درست کنم */}
-        {SortedDataOfRegions.map((region, index) => (
-          <li key={index} className={`${region} selected`}>
+        {SortedDataOfRegions.map((region) => (
+          <li
+            key={region}
+            className={`${region} ${
+              regionsSelected.includes(region) ? "selected" : ""
+            } Menu-close-control`}
+          >
             {region}
           </li>
         ))}
@@ -377,12 +382,13 @@ function CountryCard({ countryData, onOpenDetailPage }) {
       id={countryData.Name}
       className="country-card"
       key={countryData.Name}
-      onClick={(e) => onOpenDetailPage(e, countryData)}
+      onClick={(e) => onOpenDetailPage(e)}
     >
       <div className="box-img">
         <img src={countryData.Flag} alt={`${countryData.Name} country Flag`} />
       </div>
       <section className="card-body">
+        <span className="country-num">{countryData.Num}</span>
         <h3>{countryData.Name}</h3>
         <p>
           Population:
