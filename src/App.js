@@ -94,6 +94,23 @@ export default function App() {
 
   const [countryDataObj, setCountryDataObj] = useState(null);
 
+  function handlePreListCountries() {
+    fromNum !== 1 && setFromNum((fromNum) => fromNum - 8);
+  }
+
+  function handleNextListCountries(arr) {
+    toNum < arr.length && setFromNum((fromNum) => fromNum + 8);
+  }
+
+  function handleToggleFilterMenu(e) {
+    e.target.classList.contains("Menu-toggle-control") &&
+      setIsCloseMenu((isCloseMenu) => !isCloseMenu);
+
+    !e.target.classList.contains("Menu-close-control") &&
+      !isCloseMenu &&
+      setIsCloseMenu(true);
+  }
+
   function handleSelectRegion(e, region) {
     if (!e.target.classList.contains(region)) return;
 
@@ -106,15 +123,15 @@ export default function App() {
         );
   }
 
-  function handleCloseDetailPage() {
-    setIsCloseDetail(true);
-    setQuery("");
-  }
-
   function handleOpenDetailPage(e) {
     setIsCloseDetail(false);
     setEventCurrentTargetId(e.currentTarget.id);
     setCountryDataObj(null);
+  }
+
+  function handleCloseDetailPage() {
+    setIsCloseDetail(true);
+    setQuery("");
   }
 
   function handleSelectBorder(border) {
@@ -124,25 +141,8 @@ export default function App() {
     setCountryDataObj(newData);
   }
 
-  function handlePreListCountries() {
-    fromNum !== 1 && setFromNum((fromNum) => fromNum - 8);
-  }
-
-  function handleNextListCountries(arr) {
-    toNum < arr.length && setFromNum((fromNum) => fromNum + 8);
-  }
-
-  function handleToggleMenu(e) {
-    e.target.classList.contains("Menu-toggle-control") &&
-      setIsCloseMenu((isCloseMenu) => !isCloseMenu);
-
-    !e.target.classList.contains("Menu-close-control") &&
-      !isCloseMenu &&
-      setIsCloseMenu(true);
-  }
-
   return (
-    <div className="app" onClick={handleToggleMenu}>
+    <div className="app" onClick={handleToggleFilterMenu}>
       <Header>
         <ThemeMode />
       </Header>
@@ -180,115 +180,6 @@ export default function App() {
         </DetailPage>
       )}
     </div>
-  );
-}
-
-function CountryListChanger({
-  displayFromNum,
-  displayToNum,
-  onPreListCountries,
-  onNextListCountries,
-  restrictingCountriesData,
-}) {
-  return (
-    <div className="Country-List-Changer">
-      <button onClick={onPreListCountries}>Pre</button>
-      <span>From {displayFromNum}</span>
-      <span>to {displayToNum}</span>
-      <button onClick={() => onNextListCountries(restrictingCountriesData)}>
-        Next
-      </button>
-    </div>
-  );
-}
-
-function CountryDetailCard({
-  eventCurrentTargetId,
-  onSelectBorder,
-  countryDataObj,
-}) {
-  const [countryDetailFilterData] = restrictingCountriesData.filter(
-    (countryDetailsData) =>
-      countryDetailsData.Name.toLowerCase() ===
-      eventCurrentTargetId.toLowerCase()
-  );
-  const countryData = countryDataObj || countryDetailFilterData;
-
-  return (
-    <div className="country-card country-detail-card" key={countryData.Name}>
-      <div className="box-img">
-        <img src={countryData.Flag} alt={`${countryData.Name} country Flag`} />
-      </div>
-      <section className="card-body">
-        <span className="country-num">{countryData.Num}</span>
-        <h3>{countryData.Name}</h3>
-        <div className="basic-information">
-          <p>
-            Native Name:<span> {countryData.NativeName}</span>
-          </p>
-          <p>
-            Population:
-            <span> {Intl.NumberFormat().format(countryData.Population)}</span>
-          </p>
-          <p>
-            Region:<span> {countryData.Region}</span>
-          </p>
-          <p>
-            Sub Region:<span> {countryData.Subregion}</span>
-          </p>
-          <p>
-            Capital:<span> {countryData.Capital}</span>
-          </p>
-        </div>
-        <div className="more-information">
-          <p>
-            Top Level Domain:<span> {countryData.TopLevelDomain} </span>
-          </p>
-          <p>
-            Currencies:<span> {countryData.Currencies}</span>
-          </p>
-          <p>
-            Languages:
-            {countryData.LanguagesObj &&
-            typeof countryData.LanguagesObj === "object" ? (
-              Object.values(countryData.LanguagesObj).map(
-                (language, index, arr) => (
-                  <span key={language}>
-                    {" " + language}
-                    {index < arr.length - 1 ? "," : "."}
-                  </span>
-                )
-              )
-            ) : (
-              <span> There is no language</span>
-            )}
-          </p>
-        </div>
-        <div className="border-countries">
-          <h4 className="title-border-countries">Border Countries:</h4>
-          <ul className="box-border-countries">
-            {countryData.BordersArr &&
-            typeof countryData.BordersArr === "object" ? (
-              countryData.BordersArr.map((border) => (
-                <li key={border} onClick={() => onSelectBorder(border)}>
-                  <button>{border}</button>
-                </li>
-              ))
-            ) : (
-              <span>There are no borders.</span>
-            )}
-          </ul>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function BackButton({ onCloseDetailPage }) {
-  return (
-    <button className="BackButton" onClick={onCloseDetailPage}>
-      <span className="fas fa-angle-left"></span>Back
-    </button>
   );
 }
 
@@ -337,74 +228,200 @@ function Search({ query, setQuery }) {
   );
 }
 
-function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
+function CountryListChanger({
+  displayFromNum,
+  displayToNum,
+  onPreListCountries,
+  onNextListCountries,
+  restrictingCountriesData,
+}) {
   return (
-    <nav className="menu">
-      <p className="box-title-menu Menu-toggle-control">
-        Filter by Region
-        <span
-          className={`fas fa-angle-down Menu-toggle-control ${
-            isCloseMenu ? "active" : ""
+    <div className="Country-List-Changer">
+      <button onClick={onPreListCountries}>Pre</button>
+      <span>From {displayFromNum}</span>
+      <span>to {displayToNum}</span>
+      <button onClick={() => onNextListCountries(restrictingCountriesData)}>
+        Next
+      </button>
+    </div>
+  );
+}
+
+function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
+  const numOfFilteredRegions = Math.abs(regionsSelected.length - 6);
+  return (
+    <div className="box-menu">
+      <nav className="menu">
+        <p className="box-title-menu Menu-toggle-control">
+          Filter by Region
+          <span
+            className={`fas fa-angle-down Menu-toggle-control ${
+              isCloseMenu ? "active" : ""
+            }`}
+          ></span>
+          <span
+            className={`fas fa-angle-up Menu-toggle-control ${
+              !isCloseMenu ? "active" : ""
+            }`}
+          ></span>
+        </p>
+        <ul
+          className={`list-region Menu-close-control ${
+            isCloseMenu ? "hidden" : ""
           }`}
-        ></span>
-        <span
-          className={`fas fa-angle-up Menu-toggle-control ${
-            !isCloseMenu ? "active" : ""
-          }`}
-        ></span>
-      </p>
-      <ul
-        className={`list-region Menu-close-control ${
-          isCloseMenu ? "hidden" : ""
-        }`}
-        onClick={(e) =>
-          SortedDataOfRegions.map((region) => onSelectRegion(e, region))
-        }
-      >
-        {SortedDataOfRegions.map((region) => (
-          <li
-            key={region}
-            className={`${region} ${
-              regionsSelected.includes(region) ? "selected" : ""
-            } Menu-close-control`}
-          >
-            {region}
-          </li>
-        ))}
-      </ul>
-    </nav>
+          onClick={(e) =>
+            SortedDataOfRegions.map((region) => onSelectRegion(e, region))
+          }
+        >
+          {SortedDataOfRegions.map((region) => (
+            <li
+              key={region}
+              className={`${region} ${
+                regionsSelected.includes(region) ? "selected" : ""
+              } Menu-close-control`}
+            >
+              {region}
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div className="box-explanation-filter-menu">
+        <p className="explanation-filter-menu">
+          <span>{numOfFilteredRegions || "No"} </span>
+          {numOfFilteredRegions === 1
+            ? "region is filtered"
+            : "regions are filtered"}
+        </p>
+      </div>
+    </div>
   );
 }
 
 function CountryCard({ countryData, onOpenDetailPage }) {
   return (
     <div
-      id={countryData.Name}
+      id={countryData.Name.replaceAll(" ", "-")}
       className="country-card"
-      key={countryData.Name}
+      key={countryData.Name.replaceAll(" ", "-")}
       onClick={(e) => onOpenDetailPage(e)}
     >
+      <FirstPartOfCountryCard countryData={countryData} />
+    </div>
+  );
+}
+
+function FirstPartOfCountryCard({ countryData, children }) {
+  return (
+    <>
       <div className="box-img">
         <img src={countryData.Flag} alt={`${countryData.Name} country Flag`} />
       </div>
-      <section className="card-body">
+      <section className="card-body-primary">
         <span className="country-num">{countryData.Num}</span>
         <h3>{countryData.Name}</h3>
-        <p>
-          Population:
-          <span> {Intl.NumberFormat().format(countryData.Population)}</span>
-        </p>
-        <p>
-          Region:<span> {countryData.Region}</span>
-        </p>
-        <p>
-          Capital:<span> {countryData.Capital}</span>
-        </p>
+        {children}
+        <PrimaryInfoCountryCard countryData={countryData} />
       </section>
-    </div>
+    </>
+  );
+}
+
+function PrimaryInfoCountryCard({ countryData }) {
+  return (
+    <>
+      <p>
+        Population:
+        <span> {Intl.NumberFormat().format(countryData.Population)}</span>
+      </p>
+      <p>
+        Region:<span> {countryData.Region}</span>
+      </p>
+      <p>
+        Capital:<span> {countryData.Capital}</span>
+      </p>
+    </>
   );
 }
 
 function DetailPage({ children }) {
   return <main className="Detail-Page">{children}</main>;
+}
+
+function BackButton({ onCloseDetailPage }) {
+  return (
+    <button className="BackButton" onClick={onCloseDetailPage}>
+      <span className="fas fa-angle-left"></span>Back
+    </button>
+  );
+}
+
+function CountryDetailCard({
+  eventCurrentTargetId,
+  onSelectBorder,
+  countryDataObj,
+}) {
+  const [countryDetailFilterData] = restrictingCountriesData.filter(
+    (countryDetailsData) =>
+      countryDetailsData.Name.replaceAll(" ", "-").toLowerCase() ===
+      eventCurrentTargetId.toLowerCase()
+  );
+  const countryData = countryDataObj || countryDetailFilterData;
+
+  return (
+    <div
+      className="country-card country-detail-card"
+      key={countryData.Name.replaceAll(" ", "-")}
+    >
+      <FirstPartOfCountryCard countryData={countryData}>
+        <p className="first-phrase">
+          Native Name:<span> {countryData.NativeName}</span>
+        </p>
+        <p className="last-phrase">
+          Sub Region:<span> {countryData.Subregion}</span>
+        </p>
+      </FirstPartOfCountryCard>
+
+      <section className="card-body-secondary">
+        <div className="more-information">
+          <p>
+            Top Level Domain:<span> {countryData.TopLevelDomain} </span>
+          </p>
+          <p>
+            Currencies:<span> {countryData.Currencies}</span>
+          </p>
+          <p>
+            Languages:
+            {countryData.LanguagesObj &&
+            typeof countryData.LanguagesObj === "object" ? (
+              Object.values(countryData.LanguagesObj).map(
+                (language, index, arr) => (
+                  <span key={language}>
+                    {" " + language}
+                    {index < arr.length - 1 ? "," : "."}
+                  </span>
+                )
+              )
+            ) : (
+              <span> There is no language</span>
+            )}
+          </p>
+        </div>
+        <div className="border-countries">
+          <h4 className="title-border-countries">Border Countries:</h4>
+          <ul className="box-border-countries">
+            {countryData.BordersArr &&
+            typeof countryData.BordersArr === "object" ? (
+              countryData.BordersArr.map((border) => (
+                <li key={border} onClick={() => onSelectBorder(border)}>
+                  <button>{border}</button>
+                </li>
+              ))
+            ) : (
+              <span>There are no borders.</span>
+            )}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
 }
