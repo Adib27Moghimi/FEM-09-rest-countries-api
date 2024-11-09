@@ -119,9 +119,13 @@ body {
 }
 
 .Country-List-Changer span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   width: 5em;
+  height: 3.2em;
   padding: 0.4em;
-  text-align: center;
   border-radius: 0.4em;
   color: var(--Dark-Blue-Dark-Mode-Elements);
   background-color: var(--Very-Light-Gray-Light-Mode-Background);

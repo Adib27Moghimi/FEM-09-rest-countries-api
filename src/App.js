@@ -238,8 +238,14 @@ function CountryListChanger({
   return (
     <div className="Country-List-Changer">
       <button onClick={onPreListCountries}>Pre</button>
-      <span>From {displayFromNum}</span>
-      <span>to {displayToNum}</span>
+      <span>
+        <p>From</p>
+        <p>{displayFromNum}</p>
+      </span>
+      <span>
+        <p>to</p>
+        <p>{displayToNum}</p>
+      </span>
       <button onClick={() => onNextListCountries(restrictingCountriesData)}>
         Next
       </button>
