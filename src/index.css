@@ -173,11 +173,8 @@ body {
   box-shadow: 0.1em 0.1em 0.4em 0.05em rgba(0, 0, 0, 0.4);
 }
 
+.list-region li.selected,
 .list-region li:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.list-region li.selected {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
