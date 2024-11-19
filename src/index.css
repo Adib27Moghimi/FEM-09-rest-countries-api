@@ -76,6 +76,17 @@ body {
   padding: 2em 1.2em;
 }
 
+.errorText {
+  color: rgb(241, 98, 98);
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.8em;
+
+  & :last-child {
+    font-size: 0.75rem;
+  }
+}
+
 .box-input {
   background-color: var(--Dark-Blue-Dark-Mode-Elements);
   color: var(--Very-Light-Gray-Light-Mode-Background);
@@ -175,11 +186,15 @@ body {
   padding: 0.4em;
   border-radius: 0.4em;
   box-shadow: 0.1em 0.1em 0.4em 0.05em rgba(0, 0, 0, 0.4);
+  transition: letter-spacing 0.3s;
 }
 
-.list-region li.selected,
-.list-region li:hover {
+.list-region li.selected {
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.list-region li:hover {
+  letter-spacing: 0.1rem;
 }
 
 .box-explanation-filter-menu {

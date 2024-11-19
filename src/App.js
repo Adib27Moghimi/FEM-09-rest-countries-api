@@ -1,17 +1,48 @@
 import { useState } from "react";
 
-const res = await fetch(`https://restcountries.com/v3.1/all`);
-const allCountries = await res.json();
-
-const allCountriesSorted = [...allCountries].sort((a, b) => {
-  // ignore upper and lowercase
-  const NameA = a.name.common.toLowerCase();
-  const NameB = b.name.common.toLowerCase();
-
-  if (NameA < NameB) return -1;
-  if (NameA > NameB) return 1;
-  return 0;
-});
+const tempData = [
+  {
+    cca3: "FRA",
+    flags: { svg: "https://flagcdn.com/fr.svg" },
+    name: { common: "France", nativeName: { fra: { common: "France" } } },
+    population: 67391582,
+    region: "Europe",
+    subregion: "Western Europe",
+    capital: ["Paris"],
+    tld: [".fr"],
+    currencies: { EUR: { name: "Euro" } },
+    languages: {
+      fra: "French",
+    },
+    borders: ["AND", "BEL", "DEU", "ITA", "LUX", "MCO", "ESP", "CHE"],
+  },
+  {
+    cca3: "BRA",
+    flags: { svg: "https://flagcdn.com/br.svg" },
+    name: { common: "Brazil", nativeName: { fra: { common: "Brasil" } } },
+    population: 212559409,
+    region: "Americas",
+    subregion: "South America",
+    capital: ["Brasília"],
+    tld: [".br"],
+    currencies: { BRL: { name: "Euro" } },
+    languages: {
+      por: "Portuguese",
+    },
+    borders: [
+      "ARG",
+      "BOL",
+      "COL",
+      "GUF",
+      "GUY",
+      "PRY",
+      "PER",
+      "SUR",
+      "URY",
+      "VEN",
+    ],
+  },
+];
 
 function getNewData(data, i) {
   const native = data.name?.nativeName || "does not exist";
@@ -26,32 +57,57 @@ function getNewData(data, i) {
       ? currencies
       : typeof currencies === "object" && Object.values(currencies)[0];
   const newData = {
-    Cca3: data.cca3,
-    Num: i + 1,
-    Flag: data.flags.svg,
-    Name: data.name.common,
-    NativeName: nativeNameObj?.common || "does not exist",
-    Population: data.population,
-    Region: data.region,
-    Subregion: data.subregion || "does not exist",
-    Capital: data.capital?.[0] || "does not exist",
-    TopLevelDomain: data.tld?.[0] || "does not exist",
-    Currencies: currenciesObj?.name || "does not exist",
+    cca3: data.cca3,
+    num: i + 1,
+    flag: data.flags.svg,
+    name: data.name.common,
+    nativeName: nativeNameObj?.common || "does not exist",
+    population: data.population,
+    region: data.region,
+    subregion: data.subregion || "does not exist",
+    capital: data.capital?.[0] || "does not exist",
+    topLevelDomain: data.tld?.[0] || "does not exist",
+    currencies: currenciesObj?.name || "does not exist",
     LanguagesObj: data.languages || "does not exist",
     BordersArr: data.borders || "does not exist",
   };
   return newData;
 }
 
+async function getAllCountries() {
+  try {
+    const res = await fetch(`https://restcountries.com/v3.1/all`);
+    const allCountries = await res.json();
+
+    if (!res.ok) throw new Error("There is a problem!");
+    return { data: allCountries };
+  } catch (err) {
+    return { data: tempData, error: err.message };
+  }
+}
+const countriesData = await getAllCountries();
+
+const allCountriesReceived = countriesData.data;
+
+const allCountriesSorted = [...allCountriesReceived].sort((a, b) => {
+  // ignore upper and lowercase
+  const NameA = a.name.common.toLowerCase();
+  const NameB = b.name.common.toLowerCase();
+
+  if (NameA < NameB) return -1;
+  if (NameA > NameB) return 1;
+  return 0;
+});
+
 const restrictingCountriesData = allCountriesSorted.map((el, i) =>
   getNewData(el, i)
 );
 
-const regionsData = restrictingCountriesData.map((country) => country.Region);
+const regionsData = restrictingCountriesData.map((country) => country.region);
 
-const UniqueDataOfRegions = [...new Set(regionsData)];
+const uniqueDataOfRegions = [...new Set(regionsData)];
 
-const SortedDataOfRegions = [...UniqueDataOfRegions].sort((a, b) => {
+const sortedDataOfRegions = [...uniqueDataOfRegions].sort((a, b) => {
   // ignore upper and lowercase
   const RegionA = a.toLowerCase();
   const RegionB = b.toLowerCase();
@@ -73,7 +129,9 @@ export default function App() {
       : toNum;
 
   const [isCloseMenu, setIsCloseMenu] = useState(true);
-  const [regionsSelected, setRegionsSelected] = useState(SortedDataOfRegions);
+  const [regionsSelected, setRegionsSelected] = useState([
+    ...sortedDataOfRegions,
+  ]);
 
   const [isCloseDetail, setIsCloseDetail] = useState(true);
   const [eventCurrentTargetId, setEventCurrentTargetId] = useState("");
@@ -85,11 +143,11 @@ export default function App() {
   const countryFilterData = query
     ? restrictingCountriesData.filter(
         (countryData) =>
-          countryData.Name.toLowerCase().includes(query.toLowerCase().trim()) &&
-          regionsSelected.includes(countryData.Region)
+          countryData.name.toLowerCase().includes(query.toLowerCase().trim()) &&
+          regionsSelected.includes(countryData.region)
       )
     : FilterCountries.filter((countryData) =>
-        regionsSelected.includes(countryData.Region)
+        regionsSelected.includes(countryData.region)
       );
 
   const [countryDataObj, setCountryDataObj] = useState(null);
@@ -136,7 +194,7 @@ export default function App() {
 
   function handleSelectBorder(border) {
     const [newData] = restrictingCountriesData.filter(
-      (el) => el.Cca3 === border
+      (el) => el.cca3 === border
     );
     setCountryDataObj(newData);
   }
@@ -148,13 +206,13 @@ export default function App() {
       </Header>
       {isCloseDetail ? (
         <Homepage>
+          {countriesData.error && <Error />}
           <Search query={query} setQuery={setQuery} />
           <CountryListChanger
             displayFromNum={displayFromNum}
             displayToNum={displayToNum}
             onPreListCountries={handlePreListCountries}
             onNextListCountries={handleNextListCountries}
-            restrictingCountriesData={restrictingCountriesData}
           />
           <FilterMenu
             onSelectRegion={handleSelectRegion}
@@ -164,7 +222,7 @@ export default function App() {
           {countryFilterData.map((countryData) => (
             <CountryCard
               countryData={countryData}
-              key={countryData.Name}
+              key={countryData.name}
               onOpenDetailPage={handleOpenDetailPage}
             />
           ))}
@@ -212,6 +270,18 @@ function Homepage({ children }) {
   return <main className="Homepage">{children}</main>;
 }
 
+function Error() {
+  return (
+    <div className="errorText">
+      <p>{countriesData.error}:</p>
+      <p>
+        The following data does not belong to the server and is rendered only to
+        demonstrate the functionality of the app...
+      </p>
+    </div>
+  );
+}
+
 function Search({ query, setQuery }) {
   return (
     <div className="box-input">
@@ -233,7 +303,6 @@ function CountryListChanger({
   displayToNum,
   onPreListCountries,
   onNextListCountries,
-  restrictingCountriesData,
 }) {
   return (
     <div className="Country-List-Changer">
@@ -254,7 +323,9 @@ function CountryListChanger({
 }
 
 function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
-  const numOfFilteredRegions = Math.abs(regionsSelected.length - 6);
+  const numOfFilteredRegions = Math.abs(
+    regionsSelected.length - uniqueDataOfRegions.length
+  );
   return (
     <div className="box-menu">
       <nav className="menu">
@@ -276,10 +347,10 @@ function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
             isCloseMenu ? "hidden" : ""
           }`}
           onClick={(e) =>
-            SortedDataOfRegions.map((region) => onSelectRegion(e, region))
+            sortedDataOfRegions.map((region) => onSelectRegion(e, region))
           }
         >
-          {SortedDataOfRegions.map((region) => (
+          {sortedDataOfRegions.map((region) => (
             <li
               key={region}
               className={`${region} ${
@@ -306,9 +377,9 @@ function FilterMenu({ onSelectRegion, isCloseMenu, regionsSelected }) {
 function CountryCard({ countryData, onOpenDetailPage }) {
   return (
     <div
-      id={countryData.Name.replaceAll(" ", "-")}
+      id={countryData.name.replaceAll(" ", "-")}
       className="country-card"
-      key={countryData.Name.replaceAll(" ", "-")}
+      key={countryData.name.replaceAll(" ", "-")}
       onClick={(e) => onOpenDetailPage(e)}
     >
       <FirstPartOfCountryCard countryData={countryData} />
@@ -320,11 +391,11 @@ function FirstPartOfCountryCard({ countryData, children }) {
   return (
     <>
       <div className="box-img">
-        <img src={countryData.Flag} alt={`${countryData.Name} country Flag`} />
+        <img src={countryData.flag} alt={`${countryData.name} country flag`} />
       </div>
       <section className="card-body-primary">
-        <span className="country-num">{countryData.Num}</span>
-        <h3>{countryData.Name}</h3>
+        <span className="country-num">{countryData.num}</span>
+        <h3>{countryData.name}</h3>
         {children}
         <PrimaryInfoCountryCard countryData={countryData} />
       </section>
@@ -337,13 +408,13 @@ function PrimaryInfoCountryCard({ countryData }) {
     <>
       <p>
         Population:
-        <span> {Intl.NumberFormat().format(countryData.Population)}</span>
+        <span> {Intl.NumberFormat().format(countryData.population)}</span>
       </p>
       <p>
-        Region:<span> {countryData.Region}</span>
+        Region:<span> {countryData.region}</span>
       </p>
       <p>
-        Capital:<span> {countryData.Capital}</span>
+        Capital:<span> {countryData.capital}</span>
       </p>
     </>
   );
@@ -368,7 +439,7 @@ function CountryDetailCard({
 }) {
   const [countryDetailFilterData] = restrictingCountriesData.filter(
     (countryDetailsData) =>
-      countryDetailsData.Name.replaceAll(" ", "-").toLowerCase() ===
+      countryDetailsData.name.replaceAll(" ", "-").toLowerCase() ===
       eventCurrentTargetId.toLowerCase()
   );
   const countryData = countryDataObj || countryDetailFilterData;
@@ -376,24 +447,24 @@ function CountryDetailCard({
   return (
     <div
       className="country-card country-detail-card"
-      key={countryData.Name.replaceAll(" ", "-")}
+      key={countryData.name.replaceAll(" ", "-")}
     >
       <FirstPartOfCountryCard countryData={countryData}>
         <p className="first-phrase">
-          Native Name:<span> {countryData.NativeName}</span>
+          Native Name:<span> {countryData.nativeName}</span>
         </p>
         <p className="last-phrase">
-          Sub Region:<span> {countryData.Subregion}</span>
+          Sub Region:<span> {countryData.subregion}</span>
         </p>
       </FirstPartOfCountryCard>
 
       <section className="card-body-secondary">
         <div className="more-information">
           <p>
-            Top Level Domain:<span> {countryData.TopLevelDomain} </span>
+            Top Level Domain:<span> {countryData.topLevelDomain} </span>
           </p>
           <p>
-            Currencies:<span> {countryData.Currencies}</span>
+            Currencies:<span> {countryData.currencies}</span>
           </p>
           <p>
             Languages:
